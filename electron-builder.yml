@@ -1,0 +1,25 @@
+appId: com.owlpad.app
+productName: OwlPAD
+directories:
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+extraResources:
+  - from: build/icon.png
+    to: icon.png
+mac:
+  category: public.app-category.education
+  target:
+    - target: zip
+      arch:
+        - x64
+        - arm64
+win:
+  target:
+    - nsis
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Education

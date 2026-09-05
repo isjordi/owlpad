@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-inter {
+  font-family:
+    'Inter Variable',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+
+.font-system {
+  font-family:
+    -apple-system,
+    'Segoe UI',
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+:root,
+.theme-black-white {
+  --owl-bg: #0a0a0a;
+  --owl-panel: #171717;
+  --owl-border: #2a2a2a;
+  --owl-text: #f5f5f5;
+  --owl-text-muted: #8f8f8f;
+  --owl-accent: #f5f5f5;
+  --owl-accent-text: #0a0a0a;
+  --owl-accent-soft: rgba(245, 245, 245, 0.12);
+}
+
+.theme-white-black {
+  --owl-bg: #ffffff;
+  --owl-panel: #f0f0f0;
+  --owl-border: #d9d9d9;
+  --owl-text: #0a0a0a;
+  --owl-text-muted: #6b6b6b;
+  --owl-accent: #0a0a0a;
+  --owl-accent-text: #ffffff;
+  --owl-accent-soft: rgba(10, 10, 10, 0.08);
+}
+
+.theme-black-purple {
+  --owl-bg: #0a0a0a;
+  --owl-panel: #17141c;
+  --owl-border: #2c2733;
+  --owl-text: #f5f5f5;
+  --owl-text-muted: #9791a3;
+  --owl-accent: #a855f7;
+  --owl-accent-text: #ffffff;
+  --owl-accent-soft: rgba(168, 85, 247, 0.18);
+}
+
+.owl-btn-accent {
+  background: var(--owl-accent);
+  color: var(--owl-accent-text);
+  transition: filter 0.15s ease;
+}
+.owl-btn-accent:hover {
+  filter: brightness(1.15);
+}
+.owl-btn-accent:disabled {
+  opacity: 0.4;
+}
+
+.owl-input {
+  background: transparent;
+  border: 1px solid var(--owl-border);
+  color: var(--owl-text);
+}
+.owl-input:focus {
+  outline: none;
+  border-color: var(--owl-accent);
+}
+
+.owl-hover:hover {
+  background: var(--owl-panel);
+}
+
+.owl-selected {
+  background: var(--owl-accent-soft);
+  color: var(--owl-accent);
+}
+
+/* Scrollbars: a slim, embedded-looking bar in the theme's own palette instead of the
+   OS default, everywhere in the app (Firefox via scrollbar-color, Chromium/Electron
+   via the ::-webkit-scrollbar pseudo-elements). background-clip: padding-box on the
+   thumb is what gives the "inset" look — the border stays transparent and just eats
+   into the thumb's box, so it reads as padded away from the track's edges regardless
+   of what's behind it. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--owl-border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--owl-border);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--owl-text-muted);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Drag sliders (editor font size, quiz/flashcard question count) — same embedded,
+   gray look as the scrollbars above rather than the browser's default styling. */
+.owl-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  background: transparent;
+  cursor: pointer;
+}
+.owl-range::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--owl-border);
+}
+.owl-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  background: var(--owl-text-muted);
+  border: none;
+}
+.owl-range:hover::-webkit-slider-thumb,
+.owl-range:focus::-webkit-slider-thumb {
+  background: var(--owl-text);
+}
+.owl-range:focus {
+  outline: none;
+}
+.owl-range::-moz-range-track {
+  height: 4px;
+  background: var(--owl-border);
+}
+.owl-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--owl-text-muted);
+  border: none;
+  border-radius: 0;
+}
+.owl-range:hover::-moz-range-thumb,
+.owl-range:focus::-moz-range-thumb {
+  background: var(--owl-text);
+}
