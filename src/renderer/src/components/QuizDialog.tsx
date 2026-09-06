@@ -59,7 +59,7 @@ export default function QuizDialog({
   return (
     <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="w-full max-w-md space-y-4 border border-[var(--owl-border)] bg-[var(--owl-panel)] p-6"
+        className="w-full max-w-md space-y-5 border border-[var(--owl-border)] bg-[var(--owl-panel)] p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -108,12 +108,12 @@ export default function QuizDialog({
         )}
 
         {phase === 'active' && current && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <p className="text-xs text-[var(--owl-text-muted)]">
               Question {index + 1} of {questions.length}
             </p>
-            <p className="text-sm font-medium">{current.question}</p>
-            <div className="space-y-2">
+            <p className="text-sm font-medium leading-relaxed">{current.question}</p>
+            <div className="space-y-3">
               {current.options.map((option, i) => {
                 const isCorrect = i === current.correctIndex
                 const isChosen = i === selected
@@ -123,7 +123,7 @@ export default function QuizDialog({
                     key={i}
                     onClick={() => choose(i)}
                     disabled={revealed}
-                    className={`flex w-full items-center justify-between border px-3 py-2 text-left text-sm ${
+                    className={`flex w-full items-center justify-between gap-3 border px-4 py-3 text-left text-sm leading-relaxed ${
                       revealed && isCorrect
                         ? 'border-green-600 bg-green-600/10'
                         : revealed && isChosen && !isCorrect
@@ -141,7 +141,9 @@ export default function QuizDialog({
               })}
             </div>
             {selected !== null && current.explanation && (
-              <p className="text-xs text-[var(--owl-text-muted)]">{current.explanation}</p>
+              <p className="text-xs leading-relaxed text-[var(--owl-text-muted)]">
+                {current.explanation}
+              </p>
             )}
             {selected !== null && (
               <button onClick={next} className="owl-btn-accent w-full px-3 py-1.5 text-sm font-medium">
