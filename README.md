@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="src/renderer/src/assets/owl-logo-white.png" alt="OwlPAD logo" width="160" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/renderer/src/assets/owl-logo-white.png">
+    <source media="(prefers-color-scheme: light)" srcset="src/renderer/src/assets/owl-logo-black.png">
+    <img src="src/renderer/src/assets/owl-logo-black.png" alt="OwlPAD logo" width="160">
+  </picture>
 </p>
 
 # OwlPAD
