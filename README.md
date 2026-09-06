@@ -1,5 +1,8 @@
 # OwlPAD
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-isjordi%2Fowlpad-blue?logo=github)](https://github.com/isjordi/owlpad)
+
 A free, local-first Markdown notepad for students — with an offline AI study
 assistant, Owly, built in.
 
@@ -38,7 +41,7 @@ assistant, Owly, built in.
 ### Run in development
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/isjordi/owlpad.git
 cd owlpad
 npm install
 npm run dev
