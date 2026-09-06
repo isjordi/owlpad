@@ -63,6 +63,50 @@ function copiesNoteVerbatim(answer: string, noteNgrams: Set<string>): boolean {
   return false
 }
 
+// The quiz UI renders these strings as plain text, not markdown, so any markdown syntax the
+// model adds (bold/italic emphasis, inline code, a numbering prefix) would show up as literal
+// asterisks/backticks/digits on screen instead of being rendered. Strip it before it ever reaches
+// validation or the UI.
+function stripMarkdown(text: string): string {
+  let result = text.trim()
+
+  const wrappers: Array<[string, string]> = [
+    ['**', '**'],
+    ['__', '__'],
+    ['`', '`'],
+    ['"', '"'],
+    ['“', '”']
+  ]
+  for (const [open, close] of wrappers) {
+    if (result.length > open.length + close.length && result.startsWith(open) && result.endsWith(close)) {
+      result = result.slice(open.length, result.length - close.length).trim()
+    }
+  }
+
+  return result
+    .replace(/\*\*(.+?)\*\*/g, '$1') // **bold**
+    .replace(/__(.+?)__/g, '$1') // __bold__
+    .replace(/`([^`]+)`/g, '$1') // `inline code`
+    .replace(/^#{1,6}\s+/, '') // # heading
+    .replace(/^(?:[-*+]|\d+[.)])\s+/, '') // list/number prefix
+    .trim()
+}
+
+function sanitizeRawQuestion(q: unknown): unknown {
+  if (!q || typeof q !== 'object') return q
+  const candidate = q as Record<string, unknown>
+  const clean = (s: unknown): unknown => (typeof s === 'string' ? stripMarkdown(s) : s)
+  return {
+    ...candidate,
+    question: clean(candidate.question),
+    correctAnswer: clean(candidate.correctAnswer),
+    wrongAnswers: Array.isArray(candidate.wrongAnswers)
+      ? candidate.wrongAnswers.map(clean)
+      : candidate.wrongAnswers,
+    explanation: clean(candidate.explanation)
+  }
+}
+
 function isValidRawQuestion(q: unknown, noteNgrams: Set<string>): q is RawQuestion {
   if (!q || typeof q !== 'object') return false
   const candidate = q as Record<string, unknown>
@@ -156,8 +200,9 @@ export async function generateQuiz(
     const raw = (result as { questions?: unknown[] })?.questions
     if (!Array.isArray(raw)) continue
 
-    for (const q of raw) {
+    for (const rawQ of raw) {
       if (valid.length >= count) break
+      const q = sanitizeRawQuestion(rawQ)
       if (!isValidRawQuestion(q, noteNgrams)) continue
       const key = q.question.trim().toLowerCase()
       if (seenQuestions.has(key)) continue
