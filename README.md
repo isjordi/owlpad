@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/renderer/src/assets/owl-logo-white.png" alt="OwlPAD logo" width="160" />
+</p>
+
 # OwlPAD
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
