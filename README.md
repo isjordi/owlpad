@@ -3,6 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-isjordi%2Fowlpad-blue?logo=github)](https://github.com/isjordi/owlpad)
 
+Made vibe-coded, testing Claude, hope it can be useful!
+
 A free, local-first Markdown notepad for students — with an offline AI study
 assistant, Owly, built in.
 
