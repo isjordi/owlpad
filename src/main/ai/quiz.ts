@@ -33,7 +33,37 @@ interface RawQuestion {
   explanation?: string
 }
 
-function isValidRawQuestion(q: unknown): q is RawQuestion {
+// A local model will often lift its "correct answer" almost word-for-word from the note while
+// writing the wrong answers in its own words — the mismatch in phrasing alone gives the answer
+// away. We can't trust the model to police this itself, so we check it: any answer that shares a
+// long run of consecutive words with the note is rejected, whichever answer it is.
+const VERBATIM_NGRAM_SIZE = 6
+
+function normalizeWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+function ngramSet(words: string[], n: number): Set<string> {
+  const set = new Set<string>()
+  for (let i = 0; i + n <= words.length; i++) {
+    set.add(words.slice(i, i + n).join(' '))
+  }
+  return set
+}
+
+function copiesNoteVerbatim(answer: string, noteNgrams: Set<string>): boolean {
+  const words = normalizeWords(answer)
+  for (let i = 0; i + VERBATIM_NGRAM_SIZE <= words.length; i++) {
+    if (noteNgrams.has(words.slice(i, i + VERBATIM_NGRAM_SIZE).join(' '))) return true
+  }
+  return false
+}
+
+function isValidRawQuestion(q: unknown, noteNgrams: Set<string>): q is RawQuestion {
   if (!q || typeof q !== 'object') return false
   const candidate = q as Record<string, unknown>
   const nonEmpty = (s: unknown): s is string => typeof s === 'string' && s.trim().length > 0
@@ -43,7 +73,9 @@ function isValidRawQuestion(q: unknown): q is RawQuestion {
 
   const allAnswers = [candidate.correctAnswer, ...candidate.wrongAnswers] as string[]
   const distinct = new Set(allAnswers.map((a) => a.trim().toLowerCase()))
-  return distinct.size === 4
+  if (distinct.size !== 4) return false
+
+  return !allAnswers.some((a) => copiesNoteVerbatim(a, noteNgrams))
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -90,9 +122,15 @@ export async function generateQuiz(
     'it reads naturally but is factually wrong per the note. Make wrong answers tempting and ' +
     'plausible, not silly, but never accidentally correct.\n\n' +
     'Write every answer, correct and wrong alike, as a complete, natural, coherent phrase in ' +
-    'your own words that a student would recognize as a real answer — do not copy sentence ' +
-    "fragments verbatim from the note, and do not make the correct answer's wording, length, or " +
-    'style stand out from the wrong ones. Each of the 4 answers must be meaningfully different ' +
+    'your own words that a student would recognize as a real answer. This applies just as much ' +
+    "to the correct answer as to the wrong ones — do NOT lift the correct answer's wording " +
+    'straight from the note while inventing fresh phrasing for the wrong answers; that mismatch ' +
+    "is exactly what lets a student spot the correct answer without knowing the material. " +
+    "Paraphrase every option: same fact, different words than the note used. For example, if the " +
+    'note says "Photosynthesis converts light energy into chemical energy stored in glucose," a ' +
+    'good correct answer is "Plants turn sunlight into chemical energy they store as sugar" — not ' +
+    'a near-copy of the note\'s own sentence. Do not make the correct answer\'s wording, length, ' +
+    'or style stand out from the wrong ones. Each of the 4 answers must be meaningfully different ' +
     'from the other 3 — never repeat the same answer twice, and never write a wrong answer that ' +
     'just paraphrases the correct answer in different words (e.g. "halves the search space" vs. ' +
     '"reduces the number of elements each step" describe the same fact and are just as broken as ' +
@@ -103,19 +141,34 @@ export async function generateQuiz(
     'If the note is too short or thin to support a question without leaving its content, ask a ' +
     'more literal, direct question about that content rather than inventing a deeper one.'
 
-  const prompt = `The note (the only source you may draw facts from):\n\nSubject: ${noteContext.subject}\nTitle: ${noteContext.title}\nSection: ${noteContext.section}\n\n${noteContext.body}\n\n---\n\nWrite ${count} multiple-choice questions testing understanding of the note above, staying strictly within what it actually says. Return them via the required JSON schema.`
+  const noteNgrams = ngramSet(normalizeWords(noteContext.body), VERBATIM_NGRAM_SIZE)
+  const seenQuestions = new Set<string>()
+  const valid: RawQuestion[] = []
 
-  const result = await provider.generateJSON({ system, prompt, model, schema: QUIZ_SCHEMA })
-  const raw = (result as { questions?: unknown[] })?.questions
+  // The verbatim filter (and the model's own occasional slip-ups) can knock out questions, so
+  // retry a couple of times to backfill rather than silently handing back a shorter quiz.
+  const MAX_ATTEMPTS = 3
+  for (let attempt = 0; attempt < MAX_ATTEMPTS && valid.length < count; attempt++) {
+    const remaining = count - valid.length
+    const prompt = `The note (the only source you may draw facts from):\n\nSubject: ${noteContext.subject}\nTitle: ${noteContext.title}\nSection: ${noteContext.section}\n\n${noteContext.body}\n\n---\n\nWrite ${remaining} multiple-choice questions testing understanding of the note above, staying strictly within what it actually says. Return them via the required JSON schema.`
 
-  if (!Array.isArray(raw)) {
-    throw new Error("Owly's quiz came back in an unexpected format. Try again.")
+    const result = await provider.generateJSON({ system, prompt, model, schema: QUIZ_SCHEMA })
+    const raw = (result as { questions?: unknown[] })?.questions
+    if (!Array.isArray(raw)) continue
+
+    for (const q of raw) {
+      if (valid.length >= count) break
+      if (!isValidRawQuestion(q, noteNgrams)) continue
+      const key = q.question.trim().toLowerCase()
+      if (seenQuestions.has(key)) continue
+      seenQuestions.add(key)
+      valid.push(q)
+    }
   }
 
-  const questions = raw.filter(isValidRawQuestion).slice(0, count).map(toQuizQuestion)
-  if (questions.length === 0) {
+  if (valid.length === 0) {
     throw new Error("Owly couldn't generate a valid quiz from this note. Try again.")
   }
 
-  return questions
+  return valid.map(toQuizQuestion)
 }

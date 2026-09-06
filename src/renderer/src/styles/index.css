@@ -96,6 +96,12 @@ body {
   color: var(--owl-accent);
 }
 
+.owl-search-highlight {
+  background: var(--owl-accent-soft);
+  color: var(--owl-accent);
+  border-radius: 2px;
+}
+
 /* Scrollbars: a slim, embedded-looking bar in the theme's own palette instead of the
    OS default, everywhere in the app (Firefox via scrollbar-color, Chromium/Electron
    via the ::-webkit-scrollbar pseudo-elements). background-clip: padding-box on the

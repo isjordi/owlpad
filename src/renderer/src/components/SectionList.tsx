@@ -7,6 +7,7 @@ import RenameDialog from './RenameDialog'
 import QuizDialog from './QuizDialog'
 import FlashcardDialog from './FlashcardDialog'
 import MacTitleBarGutter from './MacTitleBarGutter'
+import { highlightMatches } from '../lib/highlight'
 import type { AINoteContext, Note } from '../../../shared/types'
 
 export default function SectionList({
@@ -149,10 +150,18 @@ export default function SectionList({
                 activeNoteId === note.id ? 'owl-selected' : 'owl-hover'
               }`}
             >
-              <div className="truncate text-sm font-medium">{note.section}</div>
-              <div className="mt-0.5 truncate text-xs text-[var(--owl-text-muted)]">
-                {note.subject} / {note.title}
+              <div className="truncate text-sm font-medium">
+                {isSearching ? highlightMatches(note.section, searchQuery) : note.section}
               </div>
+              <div className="mt-0.5 truncate text-xs text-[var(--owl-text-muted)]">
+                {isSearching ? highlightMatches(note.subject, searchQuery) : note.subject} /{' '}
+                {isSearching ? highlightMatches(note.title, searchQuery) : note.title}
+              </div>
+              {isSearching && 'snippet' in note && note.snippet && (
+                <div className="mt-1 line-clamp-2 text-xs text-[var(--owl-text-muted)]">
+                  {highlightMatches(note.snippet, searchQuery)}
+                </div>
+              )}
             </button>
           </li>
         ))}
