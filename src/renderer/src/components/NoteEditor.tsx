@@ -66,13 +66,16 @@ export default function NoteEditor({
 
   useEffect(() => {
     if (!activeNoteId) return
-    window.owlpad.readNote(activeNoteId).then((n) => {
-      if (!n) return
-      setNote(n)
-      setSection(n.section)
-      setBody(n.body)
-      lastInsightBody.current = n.body
-    })
+    window.owlpad
+      .readNote(activeNoteId)
+      .then((n) => {
+        if (!n) return
+        setNote(n)
+        setSection(n.section)
+        setBody(n.body)
+        lastInsightBody.current = n.body
+      })
+      .catch((err) => console.error('Failed to load note', err))
     return () => {
       if (insightTimer.current) clearTimeout(insightTimer.current)
     }
@@ -138,8 +141,6 @@ export default function NoteEditor({
       alert(err instanceof Error ? err.message : 'Failed to delete.')
     }
   }
-
-  if (!note) return <div className="flex-1" />
 
   return (
     <div className="relative flex flex-1 flex-col">
@@ -250,14 +251,14 @@ export default function NoteEditor({
         insights={insights}
         onDismiss={(id) => setInsights((prev) => prev.filter((i) => i.id !== id))}
       />
-      {showQuiz && (
+      {showQuiz && note && (
         <QuizDialog
           label={note.section}
           getNoteContext={() => ({ subject: note.subject, title: note.title, section: note.section, body })}
           onClose={() => setShowQuiz(false)}
         />
       )}
-      {showRecall && (
+      {showRecall && note && (
         <FlashcardDialog
           label={note.section}
           getNoteContext={() => ({ subject: note.subject, title: note.title, section: note.section, body })}
