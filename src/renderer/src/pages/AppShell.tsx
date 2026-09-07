@@ -17,11 +17,28 @@ export default function AppShell() {
     setSelectedSubject,
     paneWidths,
     setPaneWidth,
-    focusMode
+    focusMode,
+    toggleFocusMode
   } = useOwlPadStore()
   const [showNewNote, setShowNewNote] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showOwly, setShowOwly] = useState(false)
+
+  // Focus mode's only exit control lives inside NoteEditor, which unmounts whenever
+  // there's no active note (note deleted, or a fresh load — focusMode persists across
+  // reloads but activeNoteId doesn't) — without an active note there'd be no way back
+  // in. Treat focus mode as active only while there's a note open, and keep Escape as
+  // a hard-coded exit hatch regardless of what's mounted.
+  const focusModeActive = focusMode && activeNoteId !== null
+
+  useEffect(() => {
+    if (!focusMode) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') toggleFocusMode()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [focusMode, toggleFocusMode])
 
   async function refresh() {
     const tree = await window.owlpad.listVault()
@@ -42,7 +59,7 @@ export default function AppShell() {
 
   return (
     <div className="flex h-screen w-screen bg-[var(--owl-bg)] text-[var(--owl-text)]">
-      {!focusMode && (
+      {!focusModeActive && (
         <>
           <Sidebar
             width={paneWidths.sidebar}

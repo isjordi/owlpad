@@ -43,7 +43,12 @@ Do not answer questions, chat, hold a conversation, or discuss anything unrelate
  */
 export async function registerIpcHandlers(): Promise<void> {
   const userData = app.getPath('userData')
-  await resetIfReinstalled(userData)
+  // Only meaningful for a real installed build — in dev, app.getPath('exe') resolves to
+  // the shared Electron binary in node_modules, whose timestamp isn't tied to this app
+  // at all, so the fingerprint check would falsely "detect" a reinstall on every launch.
+  if (app.isPackaged) {
+    await resetIfReinstalled(userData)
+  }
   const configStore = new ConfigStore(path.join(userData, 'owlpad-config.json'))
   const pinStore = new PinStore(path.join(userData, 'owlpad-pin.dat'))
   const searchIndex = new SearchIndex()
