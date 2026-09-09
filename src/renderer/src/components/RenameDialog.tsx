@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 
-const MAX_NAME_LENGTH = 20
+const MAX_NAME_LENGTH = 40
 
 export default function RenameDialog({
   label,

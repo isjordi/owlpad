@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useOwlPadStore } from '../state/store'
 
-const MAX_NAME_LENGTH = 20
+const MAX_NAME_LENGTH = 40
 
 export default function NewNoteDialog({
   onClose,
