@@ -175,3 +175,30 @@ body {
 .owl-range:focus::-moz-range-thumb {
   background: var(--owl-text);
 }
+
+/* Indeterminate progress bar for AI generation (quiz/flashcards) — generation time varies
+   with question count, model speed, and validation retries, so we animate a sliding segment
+   rather than fake a percentage we can't actually know. */
+.owl-progress-track {
+  position: relative;
+  overflow: hidden;
+  height: 3px;
+  background: var(--owl-border);
+}
+.owl-progress-track::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  height: 100%;
+  background: var(--owl-accent);
+  animation: owl-progress-indeterminate 1.3s ease-in-out infinite;
+}
+@keyframes owl-progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}

@@ -92,10 +92,13 @@ export default function QuizDialog({
         )}
 
         {phase === 'loading' && (
-          <p className="text-sm text-[var(--owl-text-muted)]">
-            Owly is writing a quiz… this can take a moment on a local model, especially for more
-            questions.
-          </p>
+          <div className="space-y-3">
+            <p className="text-sm text-[var(--owl-text-muted)]">
+              Owly is writing a quiz… this can take a moment on a local model, especially for more
+              questions.
+            </p>
+            <div className="owl-progress-track" />
+          </div>
         )}
 
         {phase === 'error' && (

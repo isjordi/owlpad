@@ -90,10 +90,13 @@ export default function FlashcardDialog({
         )}
 
         {phase === 'loading' && (
-          <p className="text-sm text-[var(--owl-text-muted)]">
-            Owly is writing flashcards… this can take a moment on a local model, especially for more
-            cards.
-          </p>
+          <div className="space-y-3">
+            <p className="text-sm text-[var(--owl-text-muted)]">
+              Owly is writing flashcards… this can take a moment on a local model, especially for
+              more cards.
+            </p>
+            <div className="owl-progress-track" />
+          </div>
         )}
 
         {phase === 'error' && (
