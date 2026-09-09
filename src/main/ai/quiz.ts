@@ -19,7 +19,7 @@ const QUIZ_SCHEMA = {
           wrongAnswers: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 3 },
           explanation: { type: 'string' }
         },
-        required: ['question', 'correctAnswer', 'wrongAnswers']
+        required: ['question', 'correctAnswer', 'wrongAnswers', 'explanation']
       }
     }
   },
@@ -38,6 +38,13 @@ interface RawQuestion {
 // away. We can't trust the model to police this itself, so we check it: any answer that shares a
 // long run of consecutive words with the note is rejected, whichever answer it is.
 const VERBATIM_NGRAM_SIZE = 6
+
+// A local model will satisfy "paraphrase" by answering with a single bare term or number lifted
+// straight from the note ("Chlorophyll", "Two", "The stroma") — that dodges the n-gram check
+// (too short to match) but is still pure fact-lookup, not a test of understanding. Require every
+// answer to be a fuller phrase, which in practice forces the model to actually explain the fact
+// rather than just name it.
+const MIN_ANSWER_WORDS = 4
 
 function normalizeWords(text: string): string[] {
   return text
@@ -119,6 +126,8 @@ function isValidRawQuestion(q: unknown, noteNgrams: Set<string>): q is RawQuesti
   const distinct = new Set(allAnswers.map((a) => a.trim().toLowerCase()))
   if (distinct.size !== 4) return false
 
+  if (allAnswers.some((a) => normalizeWords(a).length < MIN_ANSWER_WORDS)) return false
+
   return !allAnswers.some((a) => copiesNoteVerbatim(a, noteNgrams))
 }
 
@@ -182,19 +191,36 @@ export async function generateQuiz(
     'Before finalizing each question, re-check it: could more than one of the 4 answers be ' +
     'considered correct, even partially or by rewording, based on the note? If so, rewrite the ' +
     'wrong answers until exactly one is unambiguously correct.\n\n' +
+    'Never write an answer that is just a bare term, name, or number copied out of the note ' +
+    '("Chlorophyll", "The stroma", "Two") — even a true one. Every answer, right or wrong, must ' +
+    'be a full explanatory phrase or sentence that says what the term means or why it matters, ' +
+    'so a student has to understand the idea, not just recognize a word from the page.\n\n' +
+    "Vary the kind of question you ask across the quiz — don't make every question a plain " +
+    '"what is X called" / "where does X happen" lookup. Where the note supports it, also ask ' +
+    'questions that make the student connect ideas: why something happens, how one part of the ' +
+    'note relates to or affects another, what the purpose or consequence of something is, or how ' +
+    'two things the note describes compare. This is what makes the quiz reinforce understanding ' +
+    'of the note instead of testing surface recall of its wording.\n\n' +
+    'Also write a one- or two-sentence "explanation" for each question, shown to the student ' +
+    'after they answer, that reinforces the concept in your own words — briefly say why the ' +
+    'correct answer is right and, where useful, how it connects to the rest of the note. This is ' +
+    'the main way the quiz helps learning stick, so never leave it blank.\n\n' +
     'If the note is too short or thin to support a question without leaving its content, ask a ' +
-    'more literal, direct question about that content rather than inventing a deeper one.'
+    'more literal, direct question about that content rather than inventing a deeper one — but ' +
+    'still phrase the answers as full explanatory phrases, not bare terms.'
 
   const noteNgrams = ngramSet(normalizeWords(noteContext.body), VERBATIM_NGRAM_SIZE)
   const seenQuestions = new Set<string>()
   const valid: RawQuestion[] = []
 
-  // The verbatim filter (and the model's own occasional slip-ups) can knock out questions, so
-  // retry a couple of times to backfill rather than silently handing back a shorter quiz.
-  const MAX_ATTEMPTS = 3
+  // The verbatim/word-count filters (and the model's own occasional slip-ups) knock out a
+  // meaningful fraction of generated questions, so retry with a generous attempt budget and
+  // over-request a little each round rather than silently handing back a shorter quiz.
+  const MAX_ATTEMPTS = 6
   for (let attempt = 0; attempt < MAX_ATTEMPTS && valid.length < count; attempt++) {
     const remaining = count - valid.length
-    const prompt = `The note (the only source you may draw facts from):\n\nSubject: ${noteContext.subject}\nTitle: ${noteContext.title}\nSection: ${noteContext.section}\n\n${noteContext.body}\n\n---\n\nWrite ${remaining} multiple-choice questions testing understanding of the note above, staying strictly within what it actually says. Return them via the required JSON schema.`
+    const askFor = attempt === 0 ? remaining : remaining + 2
+    const prompt = `The note (the only source you may draw facts from):\n\nSubject: ${noteContext.subject}\nTitle: ${noteContext.title}\nSection: ${noteContext.section}\n\n${noteContext.body}\n\n---\n\nWrite ${askFor} multiple-choice questions testing understanding of the note above, staying strictly within what it actually says. Return them via the required JSON schema.`
 
     const result = await provider.generateJSON({ system, prompt, model, schema: QUIZ_SCHEMA })
     const raw = (result as { questions?: unknown[] })?.questions
