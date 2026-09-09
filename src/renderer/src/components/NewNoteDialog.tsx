@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useOwlPadStore } from '../state/store'
 
+const MAX_NAME_LENGTH = 20
+
 export default function NewNoteDialog({
   onClose,
   onCreated
@@ -46,6 +48,7 @@ export default function NewNoteDialog({
           placeholder="Subject (e.g. Biology)"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
+          maxLength={MAX_NAME_LENGTH}
           className="owl-input w-full px-3 py-2 text-sm"
         />
         <datalist id="subjects">
@@ -58,6 +61,7 @@ export default function NewNoteDialog({
           placeholder="Title (e.g. Chapter 3)"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          maxLength={MAX_NAME_LENGTH}
           className="owl-input w-full px-3 py-2 text-sm"
         />
         <datalist id="titles">
@@ -69,6 +73,7 @@ export default function NewNoteDialog({
           placeholder="Section"
           value={section}
           onChange={(e) => setSection(e.target.value)}
+          maxLength={MAX_NAME_LENGTH}
           className="owl-input w-full px-3 py-2 text-sm"
         />
         {error && <p className="text-sm text-red-500">{error}</p>}

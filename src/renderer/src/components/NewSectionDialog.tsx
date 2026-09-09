@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 
+const MAX_NAME_LENGTH = 20
+
 export default function NewSectionDialog({
   subject,
   title,
@@ -46,6 +48,7 @@ export default function NewSectionDialog({
           placeholder="Section name"
           value={section}
           onChange={(e) => setSection(e.target.value)}
+          maxLength={MAX_NAME_LENGTH}
           className="owl-input w-full px-3 py-2 text-sm"
         />
         {error && <p className="text-sm text-red-500">{error}</p>}

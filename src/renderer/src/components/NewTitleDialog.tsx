@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 
+const MAX_NAME_LENGTH = 20
+
 export default function NewTitleDialog({
   subject,
   onClose,
@@ -42,6 +44,7 @@ export default function NewTitleDialog({
           placeholder="Title name"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          maxLength={MAX_NAME_LENGTH}
           className="owl-input w-full px-3 py-2 text-sm"
         />
         {error && <p className="text-sm text-red-500">{error}</p>}

@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 
+const MAX_NAME_LENGTH = 20
+
 export default function RenameDialog({
   label,
   initialValue,
@@ -38,6 +40,7 @@ export default function RenameDialog({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={(e) => e.target.select()}
+          maxLength={MAX_NAME_LENGTH}
           className="owl-input w-full px-3 py-2 text-sm"
         />
         {error && <p className="text-sm text-red-500">{error}</p>}
